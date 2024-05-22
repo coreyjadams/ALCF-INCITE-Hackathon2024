@@ -1,0 +1,479 @@
+---
+title: "AI Frameworks on ALCF Systems"
+author: "Corey Adams"
+format: 
+    revealjs:
+        logo: ./graphics/anl-logo.png
+        footer: "C. Adams @ ALCF, INCITE Hackathon 2024"
+        slide-number: true
+        incremental: true
+        tbl-cap-location: top
+        navigation-mode: vertical
+---
+
+
+
+## AI Frameworks
+
+At ALCF, we support the Machine Learning Frameworks on our systems to enable user science applications.  
+
+::: {.nonincremental}
+
+- Tensorflow
+  - with Horovod
+- Pytorch
+    - Scale out with Horovod, DDP, Deepspeed
+- JAX
+    - Including mpi4jax
+
+:::
+
+## What we do
+
+We focus on 
+
+- Optimized Installations
+- Performance Tuning Suggestions
+- Scale out best practices
+
+. . .
+
+... And supporting your applications - please reach out if you have questions or need help!
+
+## This talk
+
+We'll cover the basics of using this software on our systems, as well as go through some examples of running AI codes on ALCF systems.
+
+## Getting started: Polaris
+
+On Polaris:
+
+```{.bash code-line-numbers="|2|3|8|10|12-13"}
+
+❯ module use /soft/modulefiles
+❯ module avail conda
+
+----------------------- /soft/modulefiles -----------------------
+   conda/2024-04-29
+
+❯ module load conda
+
+❯ conda activate
+
+❯ which python
+/soft/applications/conda/2024-04-29/mconda3/bin/python
+
+```
+
+## Under the hood {.smaller}
+If you go to install pytorch or tensorflow yourself, here at ALCF or elsewhere, the steps are complicated and many.
+
+Our conda module is built so you can avoid all of that - and it's meant to be extensible.  We have compiled everything from source with the Polaris compiler stack and CUDA libraries:
+
+:::: {.columns}
+
+::: {.column width=40%}
+
+::: {.nonincremental}
+
+- python 3.11.8 from `conda`
+- CUDA 12.4.1 (from Nvidia of course)
+- TensorRT 8.6.1.6
+- NCCL 2.21.5
+- cudnn 9.1.0.70
+- HDF5 (Parallel) from Cray
+
+:::
+
+:::
+
+::: {.column width=60%}
+![](graphics/cuda.png){height=200}
+![](graphics/cudnn.png){height=200}
+:::
+
+::::
+
+## The Python Packages {.smaller}
+
+There are *many* packages installed into this conda environment.
+
+Try ```pip list | grep tensor ``` for example to see if tensorflow is installed:
+
+```{.bash}
+❯ pip list | grep tensor
+safetensors                  0.4.3
+tensorboard                  2.16.2
+tensorboard-data-server      0.7.2
+tensorboard_plugin_profile   2.15.1
+tensorflow                   2.16.1
+tensorflow-addons            0.23.0
+tensorflow-datasets          4.9.4
+tensorflow-io-gcs-filesystem 0.36.0
+tensorflow-metadata          1.15.0
+tensorflow-probability       0.24.0
+tensorstore                  0.1.58
+```
+
+In general, unless you have a compelling reason not to, it's highly recommended you use this module if your code python needs are supported.  It's easy to add more packages locally if you need them!
+
+. . . 
+
+:::{.r-stack}
+**If you have issues, please contact [support@alcf.anl.gov](mailto:support@alcf.anl.gov)**
+:::
+
+## What to do to get more packages?
+
+If you need to install the latest version of another package, or the dependencies you need are missing, we encourage you to *extend* our python install rather than build your own:
+
+```{.bash code-line-numbers="1-2|4-5|7-8|10-11"}
+# (Set up and activate the conda module!)
+export VENV_DIR=/lus/grand/projects/gpu_hack/AwesomeProject/software/conda-extension/
+
+# Do this just one time:
+python -m venv --system-site-packages ${VENV_DIR}
+
+# Do this every time you run after `conda activate`:
+source ${VENV_DIR}/bin/activate
+
+# Now, pip install whatever you need into your virtual env:
+pip install --upgrade pytorch_lightning
+
+```
+
+## Which Framework to Use?
+
+The AI frameworks all have some of their own advantages, historically, though in many cases there is convergence.
+
+For example, compilation (seen first in `tensorflow`) and functional transforms (seen first in `JAX`) have both shown up in `pytorch`.
+
+## Tensorflow 
+
+Many new models are using pytorch or JAX, but if you're using Tensorflow:
+
+- Use [mixed precision](https://www.tensorflow.org/api_docs/python/tf/keras/mixed_precision) to get the best performance
+- Use [tf.function](https://www.tensorflow.org/guide/function) syntax to enable tracing of your code and graph compilation
+- Enable [XLA](https://www.tensorflow.org/xla) in your code by setting `jit_compile=True` in the tf.function calls.
+
+## Scaling Tensorflow
+
+Historically, at ALCF we have encouraged users to apply [`horovod`](https://horovod.ai/) for scaling their tensorflow models.
+
+The [documentation](https://horovod.readthedocs.io/en/latest/tensorflow.html) is good and comprehensive for TF+HVD, though moving forward it's unclear if support will continue long term.
+
+
+
+:::{.r-stack}
+Are you using tensorflow + horovod?  Are you planning to continue this long term?  We want to know about your use case - please reach out to us!
+:::
+
+## Pytorch
+
+[Pytorch](https://pytorch.org/) is the most common framework we see on Polaris!
+
+- Pytorch is more "numpy-like" than tensorflow (though honestly we're now all using the phrase "pytorch-like").
+
+- Since Pytorch 2.0, graph compilation is also available in pytorch and you should try to use it if you can.
+
+- The pytorch "ecosystem" is broad and we haven't installed every package under the sun.  Please take advantage of the `virtualenv` interface to get what you need and reach out to [`support@alcf.anl.gov`](mailto:support@alcf.anl.gov) for help.
+
+## Scaling Pytorch
+
+- Pytorch can be scaled with horovod.  If this is working for you, great.  If this is not something you've delved into, skip horovod for pytorch on Polaris.
+- DDP is the recommended way to scale pytorch in pure data-parallel mode.
+
+## DeepSpeed 
+
+Users pursuing very large models should consider tools such as DeepSpeed and it's derivatives:
+
+- ZeRO Offloading can save memory by partitioning the optimizer state, gradients, and model weights, across a distributed run.
+
+- Pipeline parallelism can support other use cases that don't fit on a single device.
+
+- DeepSpeed techniques have trickled into other areas (pytorch's Fully Sharded Data Parallel, Megatron, )
+
+## Pytorch Lightning
+
+Pytorch Lightning is a very user friendly package for your pytorch models.  It *does* scale out on Polaris (and it's pretty easy) but you have to use the right plugins.
+
+```{.python code-line-numbers="1-4|6-7|9-12|14-16"}
+from mpi4py import MPI
+# ^ This has to go first!  It's a bug in our pytorch build at the moment.
+import torch
+import pytorch_lightning as pl
+
+from lightning_fabric.plugins.environments import MPIEnvironment
+environment = MPIEnvironment()
+
+from pytorch_lightning.strategies import DDPStrategy
+strategy = DDPStrategy(
+    cluster_environment = environment,
+)
+
+trainer = pl.Trainer(
+    strategy = strategy,
+)
+```
+
+## JAX On Polaris
+
+- JAX is the successor of `autograd` and built with `XLA` as a backend for `numpy`.
+  - JAX implements `numpy`'s interface - even on the GPU!
+  - JAX has a performant backend for nearly every operation.
+  - JAX is also purely functional, and python performance issues can be significantly removed with [`jit`](https://jax.readthedocs.io/en/latest/_autosummary/jax.jit.html)
+  - JAX has the most flexible and well documented [`autograd`](https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html), which can be composed with other transformations (like `vmap`).
+
+## Scaling JAX on Polaris
+
+JAX can scale out with several methods:
+
+- [`pmap`](https://jax.readthedocs.io/en/latest/_autosummary/jax.pmap.html) and `pjit` (which is just regular `jit` with extra args) are parallelization routines to parallelize your function.  They do things "for you" but you still have to know what changes they will make.
+- [`mpi4jax`](https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html) is the simplest scale out method: implement `jit`able mpi collectives within JAX, supported on Polaris.
+- JAX's newer [`shard map`](https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html) technique is more complicated but offers more fine granularity for parallelization.  It's also a little harder to use.
+
+## Best Practices for running on Polaris
+
+## Cosmic Tagger
+
+We'll use an example application to demonstrate some key differences on Polaris in terms of performance.
+
+[CosmicTagger](https://github.com/coreyjadams/CosmicTagger) is a high resolution computer vision application for semantic segmentation of neutrino images.  
+
+It was an acceptance test for Polaris and is an acceptance test for Aurora, and available in 3 frameworks.
+
+## Initial Setup
+
+You can follow along with this demonstration if you like, or return later and run these examples.
+
+Download the code for CosmicTagger:
+```{.bash}
+git clone https://github.com/coreyjadams/CosmicTagger.git
+cd CosmicTagger
+git checkout v2.1
+```
+
+## Run from a Compute Node
+
+Determine the node count and number of ranks:
+
+```{.bash code-line-numbers="true"}
+#!/bin/bash -l
+
+# What's the cosmic tagger work directory?
+WORK_DIR=/home/cadams/Polaris/CosmicTagger
+cd ${WORK_DIR}
+
+# MPI and OpenMP settings
+NNODES=`wc -l < $PBS_NODEFILE`
+NRANKS_PER_NODE=1
+
+let NRANKS=${NNODES}*${NRANKS_PER_NODE}
+```
+
+## Software setup
+
+Set the batch size per GPU and activate conda:
+
+```{.bash code-line-numbers="true"}
+LOCAL_BATCH_SIZE=1
+
+# Set up software deps:
+module use /soft/modulefiles
+module load conda
+conda activate
+```
+
+## Python call
+
+Run configuration and call:
+
+```{.bash}
+
+python ${WORK_DIR}/bin/exec.py \
+--config-name a21 \
+framework=torch \
+data.data_format=channels_last \
+run.compute_mode=GPU \
+data=synthetic \
+run.id=polaris_${LOCAL_BATCH_SIZE}-ranks${NRANKS}-nodes${NNODES} \
+run.distributed=True \
+run.minibatch_size=${LOCAL_BATCH_SIZE} \
+run.iterations=100
+```
+
+## The full Script
+
+Here's a script that runs CosmicTagger in Pytorch (from an interactive node)
+
+```{.bash code-line-numbers="true"}
+#!/bin/bash -l
+
+# What's the cosmic tagger work directory?
+WORK_DIR=/home/cadams/Polaris/CosmicTagger
+cd ${WORK_DIR}
+
+# MPI and OpenMP settings
+NNODES=`wc -l < $PBS_NODEFILE`
+NRANKS_PER_NODE=1
+
+let NRANKS=${NNODES}*${NRANKS_PER_NODE}
+
+LOCAL_BATCH_SIZE=1
+
+# Set up software deps:
+module use /soft/modulefiles
+module load conda
+conda activate
+
+python ${WORK_DIR}/bin/exec.py \
+--config-name a21 \
+framework=torch \
+data.data_format=channels_last \
+run.compute_mode=GPU \
+data=synthetic \
+run.id=polaris_${LOCAL_BATCH_SIZE}-ranks${NRANKS}-nodes${NNODES} \
+run.distributed=True \
+run.minibatch_size=${LOCAL_BATCH_SIZE} \
+run.iterations=100
+```
+
+
+
+## Performance - Pytorch, single GPU
+
+Performance in Img/s (synthetic data)
+
+| Minibatch Size | 1 | 2 | 4 | 8 |
+|--------:|:----:|:----:|:----:|:----:|
+| fp32    | 12.5 | 13.4 | 14.1 | 14.5 |
+| tf32    | 13.8 | 14.4 | 14.4 | 15.2 |
+| fp16    | 10.5 | 11.4 | 11.5 | 11.8 |
+
+You can disable tf32 with 
+```{.bash}
+export NVIDIA_TF32_OVERRIDE=0
+``` 
+... but don't actually do this!
+
+## Improving Performance: torch.compile {.smaller}
+
+Adding torch.compile to the the model can significantly enhance performance.
+
+:::: {.columns}
+
+::: {.column width=50%}
+
+:::{.r-stack}
+```{.python}
+# This is all you need to do!
+net = torch.compile(net)
+```
+:::
+
+:::
+
+::: {.column width=50%}
+| Minibatch Size |   1  |   8  |
+|---------------:|:----:|:----:|
+| tf32           | 13.8 | 15.2 | 
+| compiled tf32  | 22.9 | 33.1 |
+| fp16           | 10.5 | 11.8 |
+| compiled fp16  | 15.9 | 27.9 |
+:::
+
+::::
+
+Compilation of this model takes about ~60s extra than not compiled.  At batch size of 8, in tf32:
+
+::: {.incremental}
+
+- 8 / 15.2 = 0.52 s / step
+- 8 / 33.1 = 0.24 s / step
+
+:::
+
+. . .
+
+**Overhead of compilation is mitigated in approximately 240 steps!**
+
+## Scaling up the model
+
+If your code is configured for scale up, it can be easy:
+
+```{.python}
+mpiexec -n ${NRANKS} -ppn ${NRANKS_PER_NODE} --cpu-bind=numa \
+python ${WORK_DIR}/bin/exec.py \
+--config-name a21 \
+framework=torch \
+data.data_format=channels_last \
+run.compute_mode=GPU \
+data=synthetic \
+run.id=polaris_${LOCAL_BATCH_SIZE}-ranks${NRANKS}-nodes${NNODES} \
+run.distributed=True \
+run.minibatch_size=${LOCAL_BATCH_SIZE} \
+run.iterations=100
+```
+
+CosmicTagger will run with DDP in this configuration.
+
+## Scale up Performance
+
+On Polaris, with NCCL communicators on a node, we typically see excellent performance scaling up to 4 ranks on a GPU in data parallel mode:
+
+| Ranks          |   1  |   4  |
+|---------------:|:----:|:----:|
+| tf32           | 15.2 | 15.2 |
+| compiled tf32  | 33.1 | 33.7 |
+| fp16           | 11.8 | 11.7 |
+| compiled fp16  | 27.9 | 27.9 |
+<!-- : Per rank throughput when scaling from 1 to 4 GPUs on a node -->
+
+## MPS For models with significant GPU gaps
+
+MPS mode with more ranks per GPU can cover compute gaps (per rank, same global batch size):
+
+| Ranks          |   4  |   8  |
+|---------------:|:----:|:----:|
+| tf32           | 15.2 | 10.5 |
+| compiled tf32  | 33.7 | 16.2 |
+| fp16           | 11.7 | 8.52 |
+| compiled fp16  | 27.9 | 13.1 |
+
+
+## MPS For models with significant GPU gaps
+
+MPS mode with more ranks per GPU can cover compute gaps (total, same global batch size):
+
+| Ranks          |   4  |   8  |
+|---------------:|:----:|:----:|
+| tf32           | 60.8 | 84.0 |
+| compiled tf32  | 135  | 130  |
+| fp16           | 46.8 | 68.2 |
+| compiled fp16  | 112  | 105  |
+
+## Aurora
+
+## What will things look like on Aurora?
+
+We have made a concerted effort with Intel to ensure AI models on Aurora will be performant and your code, in the python frameworks, is portable with minimal effort.
+
+```{.python}
+
+import intel_extension_for_pytorch as ipex
+
+```
+
+. . .
+
+![](graphics/perf-comparison.png){width=800}
+
+Please attend the [developer session](https://www.alcf.anl.gov/events/deep-learning-frameworks-aurora) next week for more information on Aurora Frameworks:
+
+# Questions?
+
+
+## Why is mixed precision slower than float32???
+
+It is unclear!  Previous measurements last fall showed increased throughput in reduced precision.
+
