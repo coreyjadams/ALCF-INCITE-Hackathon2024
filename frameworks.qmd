@@ -9,11 +9,12 @@ format:
         incremental: true
         tbl-cap-location: top
         navigation-mode: vertical
+        theme: serif
 ---
 
 
 
-## AI Frameworks
+## AI Frameworks (Polaris)
 
 At ALCF, we support the Machine Learning Frameworks on our systems to enable user science applications.  
 
@@ -28,7 +29,7 @@ At ALCF, we support the Machine Learning Frameworks on our systems to enable use
 
 :::
 
-## What we do
+## What we do (Polaris)
 
 We focus on 
 
@@ -40,59 +41,102 @@ We focus on
 
 ... And supporting your applications - please reach out if you have questions or need help!
 
+## AI Frameworks on Aurora
+
+Aurora's compute nodes have Intel's Data Center Max 1550 GPUs. **CUDA is not supported natively**.
+
+Despite that, the AI frameworks that you are already using are well supported on Sunspot and Aurora.
+
 ## This talk
 
-We'll cover the basics of using this software on our systems, as well as go through some examples of running AI codes on ALCF systems.
+We'll cover the basics of using these AI softwares on our Intel GPU systems, as well as go through some examples of running AI codes on ALCF systems.
 
-## Getting started: Polaris
+In particular, I'll put some emphasis on the adaptations needed to your code to convert CUDA-based AI codes to Intel-based AI codes. 
 
-On Polaris:
+## Built in Frameworks
 
-```{.bash code-line-numbers="|2|3|8|10|12-13"}
+On Aurora, in early testing of python codes at scale we discovered limitations in the filesystems that was detrimental to start up times.
 
-❯ module use /soft/modulefiles
-❯ module avail conda
+![\n](graphics/AuroraStartupTime-CT.png)
 
------------------------ /soft/modulefiles -----------------------
-   conda/2024-04-29
+Startup Times on Aurora increase with node count!
 
-❯ module load conda
+To mitigate this, we now install the core components of the frameworks directly to the node image.
 
-❯ conda activate
+## Getting started: Sunspot
+
+
+On Sunspot:
+
+```{.bash code-line-numbers="|2,7|9|14-15"}
+Last login: Sun May 26 01:08:37 2024 from bastion-02.alcf.anl.gov
+❯ module avail frameworks
+
+-------------------- /opt/aurora/23.275.1/modulefiles --------------------
+   frameworks/2023.10.15.001
+-------------------- /opt/aurora/23.275.2/modulefiles --------------------
+   frameworks/2023.12.15.001
+
+❯ module load frameworks/2023.12.15.001
+
+The following have been reloaded with a version change:
+  1) oneapi/eng-compiler/2023.12.15.002 => oneapi/release/2023.12.15.001
 
 ❯ which python
-/soft/applications/conda/2024-04-29/mconda3/bin/python
+/opt/aurora/23.275.2/frameworks/aurora_nre_models_frameworks-2024.0/bin/python
+```
+
+## Under the hood
+Intel's optimizations for the AI frameworks are built on different libraries than CUDA.  Intel's ecosystem (oneAPI) includes many libraries that share functionality with a CUDA equivalent. Of particular relevance:
+
+- oneMKL ⇔ CUDA's math library
+- oneDNN ⇔ CUDNN
+- oneCCL ⇔ NCCL
+- (python) dpctl ⇔ cupy
+- (python) daal4py ⇔ RAPIDS (data analytics)
+
+## Optimized Performance
+
+From python, many packages require _extensions_:
+
+- [Intel Extension for Scikit-learn](https://www.intel.com/content/www/us/en/developer/tools/oneapi/scikit-learn.html) enables classical machine learning techniques.
+- [Intel Extension for Tensorflow](https://www.intel.com/content/www/us/en/developer/articles/technical/introduction-to-intel-extension-for-tensorflow.html) enables XPU support in Tensorflow.
+- [Intel Extension for Pytorch](https://intel.github.io/intel-extension-for-pytorch/#introduction) brings `torch.xpu` to replace `torch.cuda` in your code, and optimized backend functions.
+- Intel Extensions also exist for [DeepSpeed](https://github.com/intel/intel-extension-for-deepspeed), [OpenXLA](https://github.com/intel/intel-extension-for-openxla), [Triton](https://github.com/intel/intel-xpu-backend-for-triton), [Transformers](https://github.com/intel/intel-extension-for-transformers), [Horovod](https://github.com/intel/intel-optimization-for-horovod)
+- Currently, JAX is enabled through OpenXLA's extension.
+
+## Preview Modulefiles
+Putting the learning frameworks in the compute image requires time for validation and deployment, so there is a delay between the "latest" and the "deployed" versions.  The **latest** version on Sunspot is currently available on `/soft/`:
+
+```{.bash}
+❯ module use /soft/preview-modulefiles/24.086.0
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) mpich-config/collective-tuning/1024
+
+❯ module avail frameworks
+
+-------------------- /soft/preview-modulefiles/24.086.0 --------------------
+   frameworks/2024.04.15.001    frameworks/2024.04.15.002 (D)
 
 ```
 
-## Under the hood {.smaller}
-If you go to install pytorch or tensorflow yourself, here at ALCF or elsewhere, the steps are complicated and many.
+## Frameworks Deployment on Aurora
 
-Our conda module is built so you can avoid all of that - and it's meant to be extensible.  We have compiled everything from source with the Polaris compiler stack and CUDA libraries:
+We do not expect to use `/soft/` at scale on Aurora for the frameworks, at least not at first.
+- If you are happy with the version deployed into the OS, use that.
+- If you want to test the next drop, use the version on `/soft/` at small scales.
+  - "Small" is likely 128 nodes or less. (Which is actually about as much compute as Polaris!)
+- If you need the latest and greatest at scale, or need packages not already installed, you will need to use **the tarball ramdisk method**.
 
-:::: {.columns}
+## Tarball Ramdisk?? {.smaller}
 
-::: {.column width=40%}
+To avoid reading from `/soft/`, we have in the past - and likely will in the future - provide tarballs of `oneAPI` and the python ecosystem as deployed into `/tmp/`.
 
-::: {.nonincremental}
-
-- python 3.11.8 from `conda`
-- CUDA 12.4.1 (from Nvidia of course)
-- TensorRT 8.6.1.6
-- NCCL 2.21.5
-- cudnn 9.1.0.70
-- HDF5 (Parallel) from Cray
-
-:::
-
-:::
-
-::: {.column width=60%}
-![](graphics/cuda.png){height=200}
-![](graphics/cudnn.png){height=200}
-:::
-
-::::
+- On compute nodes, `/tmp/` is ramdisk.  You can rsync and untar the tarball to `/tmp/` and - while it will decrease available CPU memory - it has a much much better latency and scalability than reading from `/soft`.
+- You can also deploy a virtualenv to this space for additional packages.
+  - It's also possible to put a virtualenv into `/lus/` or `/home/` - there appears to be a special quirk of `/soft/` that limits that area.
+  - But, at the largest, largest scales, expect to need to know how to use the ramdisk for software deployment on the fly!
 
 ## The Python Packages {.smaller}
 
@@ -101,21 +145,13 @@ There are *many* packages installed into this conda environment.
 Try ```pip list | grep tensor ``` for example to see if tensorflow is installed:
 
 ```{.bash}
-❯ pip list | grep tensor
-safetensors                  0.4.3
-tensorboard                  2.16.2
-tensorboard-data-server      0.7.2
-tensorboard_plugin_profile   2.15.1
-tensorflow                   2.16.1
-tensorflow-addons            0.23.0
-tensorflow-datasets          4.9.4
-tensorflow-io-gcs-filesystem 0.36.0
-tensorflow-metadata          1.15.0
-tensorflow-probability       0.24.0
-tensorstore                  0.1.58
+❯ pip list | grep torch
+intel-extension-for-pytorch        2.1.30+xpu
+torch                              2.1.0.post2+cxx11.abi
+torchvision                        0.16.0.post2+cxx11.abi
 ```
 
-In general, unless you have a compelling reason not to, it's highly recommended you use this module if your code python needs are supported.  It's easy to add more packages locally if you need them!
+In general, unless you have a compelling reason not to, it's highly recommended you use this module if your application's python needs are supported.
 
 . . . 
 
@@ -127,11 +163,11 @@ In general, unless you have a compelling reason not to, it's highly recommended 
 
 If you need to install the latest version of another package, or the dependencies you need are missing, we encourage you to *extend* our python install rather than build your own:
 
-```{.bash code-line-numbers="1-2|4-5|7-8|10-11"}
+```{.bash code-line-numbers="1-2|4-5|7-8|10-11|13-14"}
 # (Set up and activate the conda module!)
-export VENV_DIR=/lus/grand/projects/gpu_hack/AwesomeProject/software/conda-extension/
+export VENV_DIR=/tmp/conda-extension/
 
-# Do this just one time:
+# Do this just one tilus/grand/projects/gpu_hack/AwesomeProject/software/conda-extension/me:
 python -m venv --system-site-packages ${VENV_DIR}
 
 # Do this every time you run after `conda activate`:
@@ -140,7 +176,23 @@ source ${VENV_DIR}/bin/activate
 # Now, pip install whatever you need into your virtual env:
 pip install --upgrade pytorch_lightning
 
+# Create an archive of your virtual env:
+tar -zcvf virtualenv.tar.gz $VENV_DIR
+
 ```
+
+## Deploying to ramdisk:
+
+```{.bash code-line-numbers=""}
+# Determine the node count programmatically:
+NNODES=`wc -l < $PBS_NODEFILE`
+
+# Untar the package to /tmp once per node!
+mpiexec -n ${NNODES} -ppn 1 tar -xzf virtualenv.tar.gz -C /tmp/
+
+export VENV_DIR=/tmp/conda-extension/
+```
+
 
 ## Which Framework to Use?
 
@@ -154,7 +206,8 @@ Many new models are using pytorch or JAX, but if you're using Tensorflow:
 
 - Use [mixed precision](https://www.tensorflow.org/api_docs/python/tf/keras/mixed_precision) to get the best performance
 - Use [tf.function](https://www.tensorflow.org/guide/function) syntax to enable tracing of your code and graph compilation
-- Enable [XLA](https://www.tensorflow.org/xla) in your code by setting `jit_compile=True` in the tf.function calls.
+- (Experimental) Enable [XLA](https://www.tensorflow.org/xla) in your code by setting `jit_compile=True` in the tf.function calls.
+  - XLA is experimental and early development on Intel GPUs.  Support is expected to ramp up with improved performance.
 
 ## Scaling Tensorflow
 
@@ -162,28 +215,99 @@ Historically, at ALCF we have encouraged users to apply [`horovod`](https://horo
 
 The [documentation](https://horovod.readthedocs.io/en/latest/tensorflow.html) is good and comprehensive for TF+HVD, though moving forward it's unclear if support will continue long term.
 
-
+The `num_groups=1` argument of `horovod.tensorflow.DistributedOptimizer` or `DistributedGradientTape` is recommended by Intel.
 
 :::{.r-stack}
 Are you using tensorflow + horovod?  Are you planning to continue this long term?  We want to know about your use case - please reach out to us!
 :::
 
-## Pytorch
+## Adapting your CUDA code to XPU
 
-[Pytorch](https://pytorch.org/) is the most common framework we see on Polaris!
+Tensorflow is among the easiest frameworks to port.  Most changes occur only if you're manually setting visible devices:
+
+```{.python}
+
+if self.args.run.compute_mode == ComputeMode.CUDA:
+    gpus = tf.config.list_physical_devices('GPU')
+    tf.config.experimental.set_visible_devices(gpus[hvd.local_rank()], 'GPU')
+elif self.args.run.compute_mode == ComputeMode.XPU:
+    gpus = tf.config.list_physical_devices('XPU')
+    tf.config.experimental.set_visible_devices(gpus[hvd.local_rank()], 'XPU')
+
+```
+(Code from [CosmicTagger](https://github.com/coreyjadams/CosmicTagger/blob/v2.1/src/utils/tensorflow2/distributed_trainer.py) )
+
+
+## Pytorch {.smaller}
+
+[Pytorch](https://pytorch.org/) is the most common framework we see on Polaris and Aurora!
 
 - Pytorch is more "numpy-like" than tensorflow (though honestly we're now all using the phrase "pytorch-like").
 
 - Since Pytorch 2.0, graph compilation is also available in pytorch and you should try to use it if you can.
+    - Torch.compile is experimentally supported and functional in the 2024.1 frameworks drop, `frameworks/2024.04.15.002`.  Please test it but expect you may see _decreased_ performance in some models at this time.
 
 - The pytorch "ecosystem" is broad and we haven't installed every package under the sun.  Please take advantage of the `virtualenv` interface to get what you need and reach out to [`support@alcf.anl.gov`](mailto:support@alcf.anl.gov) for help.
 
+## Adapting your CUDA code to XPU
+
+You must manually import Intel's extension to pytorch:
+
+```{.python}
+import torch
+try:
+    # I put it in a try/except to make portable code w/ CUDA ...
+    import intel_extension_for_pytorch as ipex
+except:
+    pass
+```
+. . .
+
+Access the XPU device instead of CUDA:
+```{.python}
+device = ipex.xpu.device("xpu:0")
+# Or, with ipex imported:
+device = torch.device("xpu:0")
+```
+
+## Adapting your CUDA code to XPU
+
+Optimal performance on XPU is often found with the channels-last format:
+
+```{.python}
+
+if self.args.data.data_format == DataFormatKind.channels_last:
+    if self.args.run.compute_mode == ComputeMode.XPU:
+        self._raw_net = self._raw_net.to("xpu").to(memory_format=torch.channels_last)
+```
+
+. . .
+
+Apply to the inputs and labels too:
+
+```{.python}
+minibatch_data["image"] == minibatch_data['image'].to(memory_format=torch.channels_last)
+minibatch_data["label"] == minibatch_data['label'].to(memory_format=torch.channels_last)
+```
+
 ## Scaling Pytorch
+::: {.nonincremental}
 
-- Pytorch can be scaled with horovod.  If this is working for you, great.  If this is not something you've delved into, skip horovod for pytorch on Polaris.
-- DDP is the recommended way to scale pytorch in pure data-parallel mode.
+- Pytorch can be scaled with horovod or the built in DDP method.  Both are supported on Aurora and Sunspot.
+- Differences in concurrency features on CUDA vs. Intel GPUs leads to different optimizations for horovod and DDP.
+    - Use `num_groups=1` for horovod as well. 
+:::
 
-## DeepSpeed 
+. . .
+
+On XPU, the required backend for DDP is "CCL":
+```{.python}
+if self.args.run.compute_mode == ComputeMode.XPU:
+    import oneccl_bindings_for_pytorch
+    backend = 'ccl'
+```
+
+## DeepSpeed {.smaller}
 
 Users pursuing very large models should consider tools such as DeepSpeed and it's derivatives:
 
@@ -191,15 +315,30 @@ Users pursuing very large models should consider tools such as DeepSpeed and it'
 
 - Pipeline parallelism can support other use cases that don't fit on a single device.
 
-- DeepSpeed techniques have trickled into other areas (pytorch's Fully Sharded Data Parallel, Megatron, )
+- DeepSpeed techniques have trickled into other areas (pytorch's Fully Sharded Data Parallel, Megatron)
+
+- Intel's extension for DeepSpeed is essential for good performance and DeepSpeed on XPU is still in development.
 
 ## Pytorch Lightning
 
-Pytorch Lightning is a very user friendly package for your pytorch models.  It *does* scale out on Polaris (and it's pretty easy) but you have to use the right plugins.
+Pytorch Lightning is a very user friendly package for your pytorch models.  It *does* scale out on Sunspot and Aurora (and it's pretty easy) but you have to use the right plugins.  You also must use ALCF's branch of [Pytorch Lightning](https://github.com/argonne-lcf/lightning).  Be sure to select the XPU Accelerator Option:
 
-```{.python code-line-numbers="1-4|6-7|9-12|14-16"}
-from mpi4py import MPI
-# ^ This has to go first!  It's a bug in our pytorch build at the moment.
+```{.python}
+# Select the accelerator:
+if args.run.compute_mode == ComputeMode.XPU:
+    from lightning.fabric.accelerators import XPUAccelerator
+    accelerator = XPUAccelerator()
+elif args.run.compute_mode == ComputeMode.CUDA:
+    from lightning.fabric.accelerators import CUDAAccelerator
+    accelerator = CUDAAccelerator()
+else:
+    from lightning.fabric.accelerators import CPUAccelerator
+    accelerator = CPUAccelerator()
+```
+
+## Scaling Lightning Code
+
+```{.python code-line-numbers="1-2|4-5|7-10|12-14"}
 import torch
 import pytorch_lightning as pl
 
@@ -216,7 +355,7 @@ trainer = pl.Trainer(
 )
 ```
 
-## JAX On Polaris
+## JAX
 
 - JAX is the successor of `autograd` and built with `XLA` as a backend for `numpy`.
   - JAX implements `numpy`'s interface - even on the GPU!
@@ -224,13 +363,23 @@ trainer = pl.Trainer(
   - JAX is also purely functional, and python performance issues can be significantly removed with [`jit`](https://jax.readthedocs.io/en/latest/_autosummary/jax.jit.html)
   - JAX has the most flexible and well documented [`autograd`](https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html), which can be composed with other transformations (like `vmap`).
 
-## Scaling JAX on Polaris
+## JAX on Sunspot/Aurora
+
+JAX has early support on Sunspot and Aurora through the Intel Extension for OpenXLA.  All JAX modules have been built and installed by LCF staff (me).
+
+JAX is still very early in development for XPU.  Most operations are functional, but performance can be subpar.  `mpi4jax` is supported but not concurrently with `jax.device_put` (there is a bug in upstream JAX, already fixed, but hasn't made it to XPU yet.)
+
+## Scaling JAX on Sunspot {.smaller}
 
 JAX can scale out with several methods:
 
 - [`pmap`](https://jax.readthedocs.io/en/latest/_autosummary/jax.pmap.html) and `pjit` (which is just regular `jit` with extra args) are parallelization routines to parallelize your function.  They do things "for you" but you still have to know what changes they will make.
 - [`mpi4jax`](https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html) is the simplest scale out method: implement `jit`able mpi collectives within JAX, supported on Polaris.
 - JAX's newer [`shard map`](https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html) technique is more complicated but offers more fine granularity for parallelization.  It's also a little harder to use.
+
+. . .
+
+**All of these are experimental on XPU and may not work yet!**
 
 ## Best Practices for running on Polaris
 
@@ -279,9 +428,10 @@ Set the batch size per GPU and activate conda:
 LOCAL_BATCH_SIZE=1
 
 # Set up software deps:
-module use /soft/modulefiles
-module load conda
-conda activate
+module use /soft/preview-modulefiles/24.086.0
+module load frameworks/2024.04.15.002        
+source /home/cadams/frameworks-2024.1-extension/bin/activate
+
 ```
 
 ## Python call
@@ -294,7 +444,7 @@ python ${WORK_DIR}/bin/exec.py \
 --config-name a21 \
 framework=torch \
 data.data_format=channels_last \
-run.compute_mode=GPU \
+run.compute_mode=XPU \
 data=synthetic \
 run.id=polaris_${LOCAL_BATCH_SIZE}-ranks${NRANKS}-nodes${NNODES} \
 run.distributed=True \
@@ -322,15 +472,18 @@ let NRANKS=${NNODES}*${NRANKS_PER_NODE}
 LOCAL_BATCH_SIZE=1
 
 # Set up software deps:
-module use /soft/modulefiles
-module load conda
-conda activate
+
+# Set up software deps:
+module use /soft/preview-modulefiles/24.086.0
+module load frameworks/2024.04.15.002        
+source /home/cadams/frameworks-2024.1-extension/bin/activate
+
 
 python ${WORK_DIR}/bin/exec.py \
 --config-name a21 \
 framework=torch \
 data.data_format=channels_last \
-run.compute_mode=GPU \
+run.compute_mode=XPU \
 data=synthetic \
 run.id=polaris_${LOCAL_BATCH_SIZE}-ranks${NRANKS}-nodes${NNODES} \
 run.distributed=True \
@@ -344,65 +497,47 @@ run.iterations=100
 
 Performance in Img/s (synthetic data)
 
-| Minibatch Size | 1 | 2 | 4 | 8 |
+<!-- | Minibatch Size | 1 | 2 | 4 | 8 |
 |--------:|:----:|:----:|:----:|:----:|
 | fp32    | 12.5 | 13.4 | 14.1 | 14.5 |
 | tf32    | 13.8 | 14.4 | 14.4 | 15.2 |
-| fp16    | 10.5 | 11.4 | 11.5 | 11.8 |
+| fp16    | 10.5 | 11.4 | 11.5 | 11.8 | -->
 
-You can disable tf32 with 
-```{.bash}
-export NVIDIA_TF32_OVERRIDE=0
-``` 
-... but don't actually do this!
+| Minibatch Size | 1 | 2 | 4 | 8 | 16 |
+|--------:|:----:|:----:|:----:|:----:|:----:|
+| tf32    | 15.1 | 22.8 | 30.2 | 32.0 | 31.0 |
+| bf16    | 14.7 | 24.7 | 38.6 | 44.3 | 32.8 |
+| fp16    | 14.9 | 23.0 | 30.1 | 31.9 | 31.0 |
 
-## Improving Performance: torch.compile {.smaller}
 
-Adding torch.compile to the the model can significantly enhance performance.
+## Performance Tuning
+For some applications, better performance is seen with `unset IPEX_XPU_ONEDNN_LAYOUT_OPT`.
 
-:::: {.columns}
+| Minibatch Size | 1 | 2 | 4 | 8 | 16 |
+|--------:|:----:|:----:|:----:|:----:|:----:|
+| tf32    | 16.3 | 25.2 | 31.5 | 33.2 | 31.7 |
+| bf16    | 15.6 | 26.9 | 40.5 | 45.9 | 33.4 |
+| fp16    | 16.5 | 24.9 | 31.7 | 33.2 | 31.8 |
 
-::: {.column width=50%}
+This is yielding 5 to 10% improvement for CosmicTagger.  But, you may not see benefit from this change, not all apps do.
 
-:::{.r-stack}
-```{.python}
-# This is all you need to do!
-net = torch.compile(net)
-```
-:::
+## Comparison with A100
 
-:::
+For certain configurations, PVC (single-tile) **without** `torch.compile` competes A100 **with** `torch.compile`:
 
-::: {.column width=50%}
-| Minibatch Size |   1  |   8  |
-|---------------:|:----:|:----:|
-| tf32           | 13.8 | 15.2 | 
-| compiled tf32  | 22.9 | 33.1 |
-| fp16           | 10.5 | 11.8 |
-| compiled fp16  | 15.9 | 27.9 |
-:::
 
-::::
+| Minibatch Size |   PVC-1 | A100-1 | PVC-8 | A100-8 |
+|---------------:|:----:|:----:|:--:|:---:|
+| compiled tf32  | 16.3 | 22.9 | 33.2 | 33.1 |
 
-Compilation of this model takes about ~60s extra than not compiled.  At batch size of 8, in tf32:
-
-::: {.incremental}
-
-- 8 / 15.2 = 0.52 s / step
-- 8 / 33.1 = 0.24 s / step
-
-:::
-
-. . .
-
-**Overhead of compilation is mitigated in approximately 240 steps!**
+In general, for applications we are testing at Argonne, performance of a single PVC tile is on par or better than an A100.
 
 ## Scaling up the model
 
 If your code is configured for scale up, it can be easy:
 
 ```{.python}
-mpiexec -n ${NRANKS} -ppn ${NRANKS_PER_NODE} --cpu-bind=numa \
+mpiexec -n ${NRANKS} -ppn ${NRANKS_PER_NODE} \
 python ${WORK_DIR}/bin/exec.py \
 --config-name a21 \
 framework=torch \
@@ -415,42 +550,12 @@ run.minibatch_size=${LOCAL_BATCH_SIZE} \
 run.iterations=100
 ```
 
+no binding: 37.3005
+depth: 37.2
+numa: 33.4
+dedicated: 35.7
+
 CosmicTagger will run with DDP in this configuration.
-
-## Scale up Performance
-
-On Polaris, with NCCL communicators on a node, we typically see excellent performance scaling up to 4 ranks on a GPU in data parallel mode:
-
-| Ranks          |   1  |   4  |
-|---------------:|:----:|:----:|
-| tf32           | 15.2 | 15.2 |
-| compiled tf32  | 33.1 | 33.7 |
-| fp16           | 11.8 | 11.7 |
-| compiled fp16  | 27.9 | 27.9 |
-<!-- : Per rank throughput when scaling from 1 to 4 GPUs on a node -->
-
-## MPS For models with significant GPU gaps
-
-MPS mode with more ranks per GPU can cover compute gaps (per rank, same global batch size):
-
-| Ranks          |   4  |   8  |
-|---------------:|:----:|:----:|
-| tf32           | 15.2 | 10.5 |
-| compiled tf32  | 33.7 | 16.2 |
-| fp16           | 11.7 | 8.52 |
-| compiled fp16  | 27.9 | 13.1 |
-
-
-## MPS For models with significant GPU gaps
-
-MPS mode with more ranks per GPU can cover compute gaps (total, same global batch size):
-
-| Ranks          |   4  |   8  |
-|---------------:|:----:|:----:|
-| tf32           | 60.8 | 84.0 |
-| compiled tf32  | 135  | 130  |
-| fp16           | 46.8 | 68.2 |
-| compiled fp16  | 112  | 105  |
 
 ## Aurora
 

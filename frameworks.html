@@ -402,8 +402,8 @@ Corey Adams
 </div>
 
 </section>
-<section id="ai-frameworks" class="slide level2">
-<h2>AI Frameworks</h2>
+<section id="ai-frameworks-polaris" class="slide level2">
+<h2>AI Frameworks (Polaris)</h2>
 <p>At ALCF, we support the Machine Learning Frameworks on our systems to enable user science applications.</p>
 <div>
 <ul>
@@ -422,8 +422,8 @@ Corey Adams
 </ul>
 </div>
 </section>
-<section id="what-we-do" class="slide level2">
-<h2>What we do</h2>
+<section id="what-we-do-polaris" class="slide level2">
+<h2>What we do (Polaris)</h2>
 <p>We focus on</p>
 <ul>
 <li class="fragment">Optimized Installations</li>
@@ -434,65 +434,102 @@ Corey Adams
 <p>… And supporting your applications - please reach out if you have questions or need help!</p>
 </div>
 </section>
+<section id="ai-frameworks-on-aurora" class="slide level2">
+<h2>AI Frameworks on Aurora</h2>
+<p>Aurora’s compute nodes have Intel’s Data Center Max 1550 GPUs. <strong>CUDA is not supported natively</strong>.</p>
+<p>Despite that, the AI frameworks that you are already using are well supported on Sunspot and Aurora.</p>
+</section>
 <section id="this-talk" class="slide level2">
 <h2>This talk</h2>
-<p>We’ll cover the basics of using this software on our systems, as well as go through some examples of running AI codes on ALCF systems.</p>
+<p>We’ll cover the basics of using these AI softwares on our Intel GPU systems, as well as go through some examples of running AI codes on ALCF systems.</p>
+<p>In particular, I’ll put some emphasis on the adaptations needed to your code to convert CUDA-based AI codes to Intel-based AI codes.</p>
 </section>
-<section id="getting-started-polaris" class="slide level2">
-<h2>Getting started: Polaris</h2>
-<p>On Polaris:</p>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|2|3|8|10|12-13"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href=""></a></span>
-<span id="cb1-2"><a href=""></a><span class="ex">❯</span> module use /soft/modulefiles</span>
-<span id="cb1-3"><a href=""></a><span class="ex">❯</span> module avail conda</span>
-<span id="cb1-4"><a href=""></a></span>
-<span id="cb1-5"><a href=""></a><span class="ex">-----------------------</span> /soft/modulefiles <span class="at">-----------------------</span></span>
-<span id="cb1-6"><a href=""></a>   <span class="ex">conda/2024-04-29</span></span>
-<span id="cb1-7"><a href=""></a></span>
-<span id="cb1-8"><a href=""></a><span class="ex">❯</span> module load conda</span>
-<span id="cb1-9"><a href=""></a></span>
-<span id="cb1-10"><a href=""></a><span class="ex">❯</span> conda activate</span>
-<span id="cb1-11"><a href=""></a></span>
-<span id="cb1-12"><a href=""></a><span class="ex">❯</span> which python</span>
-<span id="cb1-13"><a href=""></a><span class="ex">/soft/applications/conda/2024-04-29/mconda3/bin/python</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="built-in-frameworks" class="slide level2">
+<h2>Built in Frameworks</h2>
+<p>On Aurora, in early testing of python codes at scale we discovered limitations in the filesystems that was detrimental to start up times.</p>
+
+<img data-src="graphics/AuroraStartupTime-CT.png" class="r-stretch quarto-figure-center"><p class="caption"></p><p>Startup Times on Aurora increase with node count!</p>
+<p>To mitigate this, we now install the core components of the frameworks directly to the node image.</p>
 </section>
-<section id="under-the-hood" class="slide level2 smaller">
+<section id="getting-started-sunspot" class="slide level2">
+<h2>Getting started: Sunspot</h2>
+<p>On Sunspot:</p>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|2,7|9|14-15"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href=""></a><span class="ex">Last</span> login: Sun May 26 01:08:37 2024 from bastion-02.alcf.anl.gov</span>
+<span id="cb1-2"><a href=""></a><span class="ex">❯</span> module avail frameworks</span>
+<span id="cb1-3"><a href=""></a></span>
+<span id="cb1-4"><a href=""></a><span class="ex">--------------------</span> /opt/aurora/23.275.1/modulefiles <span class="at">--------------------</span></span>
+<span id="cb1-5"><a href=""></a>   <span class="ex">frameworks/2023.10.15.001</span></span>
+<span id="cb1-6"><a href=""></a><span class="ex">--------------------</span> /opt/aurora/23.275.2/modulefiles <span class="at">--------------------</span></span>
+<span id="cb1-7"><a href=""></a>   <span class="ex">frameworks/2023.12.15.001</span></span>
+<span id="cb1-8"><a href=""></a></span>
+<span id="cb1-9"><a href=""></a><span class="ex">❯</span> module load frameworks/2023.12.15.001</span>
+<span id="cb1-10"><a href=""></a></span>
+<span id="cb1-11"><a href=""></a><span class="ex">The</span> following have been reloaded with a version change:</span>
+<span id="cb1-12"><a href=""></a>  <span class="ex">1</span><span class="er">)</span> <span class="ex">oneapi/eng-compiler/2023.12.15.002</span> =<span class="op">&gt;</span> oneapi/release/2023.12.15.001</span>
+<span id="cb1-13"><a href=""></a></span>
+<span id="cb1-14"><a href=""></a><span class="ex">❯</span> which python</span>
+<span id="cb1-15"><a href=""></a><span class="ex">/opt/aurora/23.275.2/frameworks/aurora_nre_models_frameworks-2024.0/bin/python</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="under-the-hood" class="slide level2">
 <h2>Under the hood</h2>
-<p>If you go to install pytorch or tensorflow yourself, here at ALCF or elsewhere, the steps are complicated and many.</p>
-<p>Our conda module is built so you can avoid all of that - and it’s meant to be extensible. We have compiled everything from source with the Polaris compiler stack and CUDA libraries:</p>
-<div class="columns">
-<div class="column" style="width:40%;">
-<div>
+<p>Intel’s optimizations for the AI frameworks are built on different libraries than CUDA. Intel’s ecosystem (oneAPI) includes many libraries that share functionality with a CUDA equivalent. Of particular relevance:</p>
 <ul>
-<li>python 3.11.8 from <code>conda</code></li>
-<li>CUDA 12.4.1 (from Nvidia of course)</li>
-<li>TensorRT 8.6.1.6</li>
-<li>NCCL 2.21.5</li>
-<li>cudnn 9.1.0.70</li>
-<li>HDF5 (Parallel) from Cray</li>
+<li class="fragment">oneMKL ⇔ CUDA’s math library</li>
+<li class="fragment">oneDNN ⇔ CUDNN</li>
+<li class="fragment">oneCCL ⇔ NCCL</li>
+<li class="fragment">(python) dpctl ⇔ cupy</li>
+<li class="fragment">(python) daal4py ⇔ RAPIDS (data analytics)</li>
 </ul>
-</div>
-</div><div class="column" style="width:60%;">
-<p><img data-src="graphics/cuda.png" height="200"> <img data-src="graphics/cudnn.png" height="200"></p>
-</div>
-</div>
+</section>
+<section id="optimized-performance" class="slide level2">
+<h2>Optimized Performance</h2>
+<p>From python, many packages require <em>extensions</em>:</p>
+<ul>
+<li class="fragment"><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/scikit-learn.html">Intel Extension for Scikit-learn</a> enables classical machine learning techniques.</li>
+<li class="fragment"><a href="https://www.intel.com/content/www/us/en/developer/articles/technical/introduction-to-intel-extension-for-tensorflow.html">Intel Extension for Tensorflow</a> enables XPU support in Tensorflow.</li>
+<li class="fragment"><a href="https://intel.github.io/intel-extension-for-pytorch/#introduction">Intel Extension for Pytorch</a> brings <code>torch.xpu</code> to replace <code>torch.cuda</code> in your code, and optimized backend functions.</li>
+<li class="fragment">Intel Extensions also exist for <a href="https://github.com/intel/intel-extension-for-deepspeed">DeepSpeed</a>, <a href="https://github.com/intel/intel-extension-for-openxla">OpenXLA</a>, <a href="https://github.com/intel/intel-xpu-backend-for-triton">Triton</a>, <a href="https://github.com/intel/intel-extension-for-transformers">Transformers</a>, <a href="https://github.com/intel/intel-optimization-for-horovod">Horovod</a></li>
+<li class="fragment">Currently, JAX is enabled through OpenXLA’s extension.</li>
+</ul>
+</section>
+<section id="preview-modulefiles" class="slide level2">
+<h2>Preview Modulefiles</h2>
+<p>Putting the learning frameworks in the compute image requires time for validation and deployment, so there is a delay between the “latest” and the “deployed” versions. The <strong>latest</strong> version on Sunspot is currently available on <code>/soft/</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href=""></a><span class="ex">❯</span> module use /soft/preview-modulefiles/24.086.0</span>
+<span id="cb2-2"><a href=""></a></span>
+<span id="cb2-3"><a href=""></a><span class="ex">Due</span> to MODULEPATH changes, the following have been reloaded:</span>
+<span id="cb2-4"><a href=""></a>  <span class="ex">1</span><span class="er">)</span> <span class="ex">mpich-config/collective-tuning/1024</span></span>
+<span id="cb2-5"><a href=""></a></span>
+<span id="cb2-6"><a href=""></a><span class="ex">❯</span> module avail frameworks</span>
+<span id="cb2-7"><a href=""></a></span>
+<span id="cb2-8"><a href=""></a><span class="ex">--------------------</span> /soft/preview-modulefiles/24.086.0 <span class="at">--------------------</span></span>
+<span id="cb2-9"><a href=""></a>   <span class="ex">frameworks/2024.04.15.001</span>    frameworks/2024.04.15.002 <span class="er">(</span><span class="ex">D</span><span class="kw">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="frameworks-deployment-on-aurora" class="slide level2">
+<h2>Frameworks Deployment on Aurora</h2>
+<p>We do not expect to use <code>/soft/</code> at scale on Aurora for the frameworks, at least not at first. - If you are happy with the version deployed into the OS, use that. - If you want to test the next drop, use the version on <code>/soft/</code> at small scales. - “Small” is likely 128 nodes or less. (Which is actually about as much compute as Polaris!) - If you need the latest and greatest at scale, or need packages not already installed, you will need to use <strong>the tarball ramdisk method</strong>.</p>
+</section>
+<section id="tarball-ramdisk" class="slide level2 smaller">
+<h2>Tarball Ramdisk??</h2>
+<p>To avoid reading from <code>/soft/</code>, we have in the past - and likely will in the future - provide tarballs of <code>oneAPI</code> and the python ecosystem as deployed into <code>/tmp/</code>.</p>
+<ul>
+<li class="fragment">On compute nodes, <code>/tmp/</code> is ramdisk. You can rsync and untar the tarball to <code>/tmp/</code> and - while it will decrease available CPU memory - it has a much much better latency and scalability than reading from <code>/soft</code>.</li>
+<li class="fragment">You can also deploy a virtualenv to this space for additional packages.
+<ul>
+<li class="fragment">It’s also possible to put a virtualenv into <code>/lus/</code> or <code>/home/</code> - there appears to be a special quirk of <code>/soft/</code> that limits that area.</li>
+<li class="fragment">But, at the largest, largest scales, expect to need to know how to use the ramdisk for software deployment on the fly!</li>
+</ul></li>
+</ul>
 </section>
 <section id="the-python-packages" class="slide level2 smaller">
 <h2>The Python Packages</h2>
 <p>There are <em>many</em> packages installed into this conda environment.</p>
 <p>Try <code>pip list | grep tensor</code> for example to see if tensorflow is installed:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href=""></a><span class="ex">❯</span> pip list <span class="kw">|</span> <span class="fu">grep</span> tensor</span>
-<span id="cb2-2"><a href=""></a><span class="ex">safetensors</span>                  0.4.3</span>
-<span id="cb2-3"><a href=""></a><span class="ex">tensorboard</span>                  2.16.2</span>
-<span id="cb2-4"><a href=""></a><span class="ex">tensorboard-data-server</span>      0.7.2</span>
-<span id="cb2-5"><a href=""></a><span class="ex">tensorboard_plugin_profile</span>   2.15.1</span>
-<span id="cb2-6"><a href=""></a><span class="ex">tensorflow</span>                   2.16.1</span>
-<span id="cb2-7"><a href=""></a><span class="ex">tensorflow-addons</span>            0.23.0</span>
-<span id="cb2-8"><a href=""></a><span class="ex">tensorflow-datasets</span>          4.9.4</span>
-<span id="cb2-9"><a href=""></a><span class="ex">tensorflow-io-gcs-filesystem</span> 0.36.0</span>
-<span id="cb2-10"><a href=""></a><span class="ex">tensorflow-metadata</span>          1.15.0</span>
-<span id="cb2-11"><a href=""></a><span class="ex">tensorflow-probability</span>       0.24.0</span>
-<span id="cb2-12"><a href=""></a><span class="ex">tensorstore</span>                  0.1.58</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>In general, unless you have a compelling reason not to, it’s highly recommended you use this module if your code python needs are supported. It’s easy to add more packages locally if you need them!</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href=""></a><span class="ex">❯</span> pip list <span class="kw">|</span> <span class="fu">grep</span> torch</span>
+<span id="cb3-2"><a href=""></a><span class="ex">intel-extension-for-pytorch</span>        2.1.30+xpu</span>
+<span id="cb3-3"><a href=""></a><span class="ex">torch</span>                              2.1.0.post2+cxx11.abi</span>
+<span id="cb3-4"><a href=""></a><span class="ex">torchvision</span>                        0.16.0.post2+cxx11.abi</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>In general, unless you have a compelling reason not to, it’s highly recommended you use this module if your application’s python needs are supported.</p>
 <div class="fragment">
 <div class="r-stack">
 <p><strong>If you have issues, please contact <a href="mailto:support@alcf.anl.gov">support@alcf.anl.gov</a></strong></p>
@@ -502,17 +539,30 @@ Corey Adams
 <section id="what-to-do-to-get-more-packages" class="slide level2">
 <h2>What to do to get more packages?</h2>
 <p>If you need to install the latest version of another package, or the dependencies you need are missing, we encourage you to <em>extend</em> our python install rather than build your own:</p>
-<div class="sourceCode" id="cb3" data-code-line-numbers="1-2|4-5|7-8|10-11"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href=""></a><span class="co"># (Set up and activate the conda module!)</span></span>
-<span id="cb3-2"><a href=""></a><span class="bu">export</span> <span class="va">VENV_DIR</span><span class="op">=</span>/lus/grand/projects/gpu_hack/AwesomeProject/software/conda-extension/</span>
-<span id="cb3-3"><a href=""></a></span>
-<span id="cb3-4"><a href=""></a><span class="co"># Do this just one time:</span></span>
-<span id="cb3-5"><a href=""></a><span class="ex">python</span> <span class="at">-m</span> venv <span class="at">--system-site-packages</span> <span class="va">${VENV_DIR}</span></span>
-<span id="cb3-6"><a href=""></a></span>
-<span id="cb3-7"><a href=""></a><span class="co"># Do this every time you run after `conda activate`:</span></span>
-<span id="cb3-8"><a href=""></a><span class="bu">source</span> <span class="va">${VENV_DIR}</span>/bin/activate</span>
-<span id="cb3-9"><a href=""></a></span>
-<span id="cb3-10"><a href=""></a><span class="co"># Now, pip install whatever you need into your virtual env:</span></span>
-<span id="cb3-11"><a href=""></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pytorch_lightning</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4" data-code-line-numbers="1-2|4-5|7-8|10-11|13-14"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href=""></a><span class="co"># (Set up and activate the conda module!)</span></span>
+<span id="cb4-2"><a href=""></a><span class="bu">export</span> <span class="va">VENV_DIR</span><span class="op">=</span>/tmp/conda-extension/</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a><span class="co"># Do this just one tilus/grand/projects/gpu_hack/AwesomeProject/software/conda-extension/me:</span></span>
+<span id="cb4-5"><a href=""></a><span class="ex">python</span> <span class="at">-m</span> venv <span class="at">--system-site-packages</span> <span class="va">${VENV_DIR}</span></span>
+<span id="cb4-6"><a href=""></a></span>
+<span id="cb4-7"><a href=""></a><span class="co"># Do this every time you run after `conda activate`:</span></span>
+<span id="cb4-8"><a href=""></a><span class="bu">source</span> <span class="va">${VENV_DIR}</span>/bin/activate</span>
+<span id="cb4-9"><a href=""></a></span>
+<span id="cb4-10"><a href=""></a><span class="co"># Now, pip install whatever you need into your virtual env:</span></span>
+<span id="cb4-11"><a href=""></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pytorch_lightning</span>
+<span id="cb4-12"><a href=""></a></span>
+<span id="cb4-13"><a href=""></a><span class="co"># Create an archive of your virtual env:</span></span>
+<span id="cb4-14"><a href=""></a><span class="fu">tar</span> <span class="at">-zcvf</span> virtualenv.tar.gz <span class="va">$VENV_DIR</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="deploying-to-ramdisk" class="slide level2">
+<h2>Deploying to ramdisk:</h2>
+<div class="sourceCode" id="cb5" data-code-line-numbers=""><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href=""></a><span class="co"># Determine the node count programmatically:</span></span>
+<span id="cb5-2"><a href=""></a><span class="va">NNODES</span><span class="op">=</span><span class="kw">`</span><span class="fu">wc</span> <span class="at">-l</span> <span class="op">&lt;</span> <span class="va">$PBS_NODEFILE</span><span class="kw">`</span></span>
+<span id="cb5-3"><a href=""></a></span>
+<span id="cb5-4"><a href=""></a><span class="co"># Untar the package to /tmp once per node!</span></span>
+<span id="cb5-5"><a href=""></a><span class="ex">mpiexec</span> <span class="at">-n</span> <span class="va">${NNODES}</span> <span class="at">-ppn</span> 1 tar <span class="at">-xzf</span> virtualenv.tar.gz <span class="at">-C</span> /tmp/</span>
+<span id="cb5-6"><a href=""></a></span>
+<span id="cb5-7"><a href=""></a><span class="bu">export</span> <span class="va">VENV_DIR</span><span class="op">=</span>/tmp/conda-extension/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="which-framework-to-use" class="slide level2">
 <h2>Which Framework to Use?</h2>
@@ -525,64 +575,135 @@ Corey Adams
 <ul>
 <li class="fragment">Use <a href="https://www.tensorflow.org/api_docs/python/tf/keras/mixed_precision">mixed precision</a> to get the best performance</li>
 <li class="fragment">Use <a href="https://www.tensorflow.org/guide/function">tf.function</a> syntax to enable tracing of your code and graph compilation</li>
-<li class="fragment">Enable <a href="https://www.tensorflow.org/xla">XLA</a> in your code by setting <code>jit_compile=True</code> in the tf.function calls.</li>
+<li class="fragment">(Experimental) Enable <a href="https://www.tensorflow.org/xla">XLA</a> in your code by setting <code>jit_compile=True</code> in the tf.function calls.
+<ul>
+<li class="fragment">XLA is experimental and early development on Intel GPUs. Support is expected to ramp up with improved performance.</li>
+</ul></li>
 </ul>
 </section>
 <section id="scaling-tensorflow" class="slide level2">
 <h2>Scaling Tensorflow</h2>
 <p>Historically, at ALCF we have encouraged users to apply <a href="https://horovod.ai/"><code>horovod</code></a> for scaling their tensorflow models.</p>
 <p>The <a href="https://horovod.readthedocs.io/en/latest/tensorflow.html">documentation</a> is good and comprehensive for TF+HVD, though moving forward it’s unclear if support will continue long term.</p>
+<p>The <code>num_groups=1</code> argument of <code>horovod.tensorflow.DistributedOptimizer</code> or <code>DistributedGradientTape</code> is recommended by Intel.</p>
 <div class="r-stack">
 <p>Are you using tensorflow + horovod? Are you planning to continue this long term? We want to know about your use case - please reach out to us!</p>
 </div>
 </section>
-<section id="pytorch" class="slide level2">
+<section id="adapting-your-cuda-code-to-xpu" class="slide level2">
+<h2>Adapting your CUDA code to XPU</h2>
+<p>Tensorflow is among the easiest frameworks to port. Most changes occur only if you’re manually setting visible devices:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a></span>
+<span id="cb6-2"><a href=""></a><span class="cf">if</span> <span class="va">self</span>.args.run.compute_mode <span class="op">==</span> ComputeMode.CUDA:</span>
+<span id="cb6-3"><a href=""></a>    gpus <span class="op">=</span> tf.config.list_physical_devices(<span class="st">'GPU'</span>)</span>
+<span id="cb6-4"><a href=""></a>    tf.config.experimental.set_visible_devices(gpus[hvd.local_rank()], <span class="st">'GPU'</span>)</span>
+<span id="cb6-5"><a href=""></a><span class="cf">elif</span> <span class="va">self</span>.args.run.compute_mode <span class="op">==</span> ComputeMode.XPU:</span>
+<span id="cb6-6"><a href=""></a>    gpus <span class="op">=</span> tf.config.list_physical_devices(<span class="st">'XPU'</span>)</span>
+<span id="cb6-7"><a href=""></a>    tf.config.experimental.set_visible_devices(gpus[hvd.local_rank()], <span class="st">'XPU'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>(Code from <a href="https://github.com/coreyjadams/CosmicTagger/blob/v2.1/src/utils/tensorflow2/distributed_trainer.py">CosmicTagger</a> )</p>
+</section>
+<section id="pytorch" class="slide level2 smaller">
 <h2>Pytorch</h2>
-<p><a href="https://pytorch.org/">Pytorch</a> is the most common framework we see on Polaris!</p>
+<p><a href="https://pytorch.org/">Pytorch</a> is the most common framework we see on Polaris and Aurora!</p>
 <ul>
 <li class="fragment"><p>Pytorch is more “numpy-like” than tensorflow (though honestly we’re now all using the phrase “pytorch-like”).</p></li>
-<li class="fragment"><p>Since Pytorch 2.0, graph compilation is also available in pytorch and you should try to use it if you can.</p></li>
+<li class="fragment"><p>Since Pytorch 2.0, graph compilation is also available in pytorch and you should try to use it if you can.</p>
+<ul>
+<li class="fragment">Torch.compile is experimentally supported and functional in the 2024.1 frameworks drop, <code>frameworks/2024.04.15.002</code>. Please test it but expect you may see <em>decreased</em> performance in some models at this time.</li>
+</ul></li>
 <li class="fragment"><p>The pytorch “ecosystem” is broad and we haven’t installed every package under the sun. Please take advantage of the <code>virtualenv</code> interface to get what you need and reach out to <a href="mailto:support@alcf.anl.gov"><code>support@alcf.anl.gov</code></a> for help.</p></li>
 </ul>
 </section>
+<section id="adapting-your-cuda-code-to-xpu-1" class="slide level2">
+<h2>Adapting your CUDA code to XPU</h2>
+<p>You must manually import Intel’s extension to pytorch:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="im">import</span> torch</span>
+<span id="cb7-2"><a href=""></a><span class="cf">try</span>:</span>
+<span id="cb7-3"><a href=""></a>    <span class="co"># I put it in a try/except to make portable code w/ CUDA ...</span></span>
+<span id="cb7-4"><a href=""></a>    <span class="im">import</span> intel_extension_for_pytorch <span class="im">as</span> ipex</span>
+<span id="cb7-5"><a href=""></a><span class="cf">except</span>:</span>
+<span id="cb7-6"><a href=""></a>    <span class="cf">pass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p>Access the XPU device instead of CUDA:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a>device <span class="op">=</span> ipex.xpu.device(<span class="st">"xpu:0"</span>)</span>
+<span id="cb8-2"><a href=""></a><span class="co"># Or, with ipex imported:</span></span>
+<span id="cb8-3"><a href=""></a>device <span class="op">=</span> torch.device(<span class="st">"xpu:0"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="adapting-your-cuda-code-to-xpu-2" class="slide level2">
+<h2>Adapting your CUDA code to XPU</h2>
+<p>Optimal performance on XPU is often found with the channels-last format:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a></span>
+<span id="cb9-2"><a href=""></a><span class="cf">if</span> <span class="va">self</span>.args.data.data_format <span class="op">==</span> DataFormatKind.channels_last:</span>
+<span id="cb9-3"><a href=""></a>    <span class="cf">if</span> <span class="va">self</span>.args.run.compute_mode <span class="op">==</span> ComputeMode.XPU:</span>
+<span id="cb9-4"><a href=""></a>        <span class="va">self</span>._raw_net <span class="op">=</span> <span class="va">self</span>._raw_net.to(<span class="st">"xpu"</span>).to(memory_format<span class="op">=</span>torch.channels_last)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p>Apply to the inputs and labels too:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>minibatch_data[<span class="st">"image"</span>] <span class="op">==</span> minibatch_data[<span class="st">'image'</span>].to(memory_format<span class="op">=</span>torch.channels_last)</span>
+<span id="cb10-2"><a href=""></a>minibatch_data[<span class="st">"label"</span>] <span class="op">==</span> minibatch_data[<span class="st">'label'</span>].to(memory_format<span class="op">=</span>torch.channels_last)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 <section id="scaling-pytorch" class="slide level2">
 <h2>Scaling Pytorch</h2>
+<div>
 <ul>
-<li class="fragment">Pytorch can be scaled with horovod. If this is working for you, great. If this is not something you’ve delved into, skip horovod for pytorch on Polaris.</li>
-<li class="fragment">DDP is the recommended way to scale pytorch in pure data-parallel mode.</li>
+<li>Pytorch can be scaled with horovod or the built in DDP method. Both are supported on Aurora and Sunspot.</li>
+<li>Differences in concurrency features on CUDA vs.&nbsp;Intel GPUs leads to different optimizations for horovod and DDP.
+<ul>
+<li>Use <code>num_groups=1</code> for horovod as well.</li>
+</ul></li>
 </ul>
+</div>
+<div class="fragment">
+<p>On XPU, the required backend for DDP is “CCL”:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="cf">if</span> <span class="va">self</span>.args.run.compute_mode <span class="op">==</span> ComputeMode.XPU:</span>
+<span id="cb11-2"><a href=""></a>    <span class="im">import</span> oneccl_bindings_for_pytorch</span>
+<span id="cb11-3"><a href=""></a>    backend <span class="op">=</span> <span class="st">'ccl'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="deepspeed" class="slide level2">
+<section id="deepspeed" class="slide level2 smaller">
 <h2>DeepSpeed</h2>
 <p>Users pursuing very large models should consider tools such as DeepSpeed and it’s derivatives:</p>
 <ul>
 <li class="fragment"><p>ZeRO Offloading can save memory by partitioning the optimizer state, gradients, and model weights, across a distributed run.</p></li>
 <li class="fragment"><p>Pipeline parallelism can support other use cases that don’t fit on a single device.</p></li>
-<li class="fragment"><p>DeepSpeed techniques have trickled into other areas (pytorch’s Fully Sharded Data Parallel, Megatron, )</p></li>
+<li class="fragment"><p>DeepSpeed techniques have trickled into other areas (pytorch’s Fully Sharded Data Parallel, Megatron)</p></li>
+<li class="fragment"><p>Intel’s extension for DeepSpeed is essential for good performance and DeepSpeed on XPU is still in development.</p></li>
 </ul>
 </section>
 <section id="pytorch-lightning" class="slide level2">
 <h2>Pytorch Lightning</h2>
-<p>Pytorch Lightning is a very user friendly package for your pytorch models. It <em>does</em> scale out on Polaris (and it’s pretty easy) but you have to use the right plugins.</p>
-<div class="sourceCode" id="cb4" data-code-line-numbers="1-4|6-7|9-12|14-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">from</span> mpi4py <span class="im">import</span> MPI</span>
-<span id="cb4-2"><a href=""></a><span class="co"># ^ This has to go first!  It's a bug in our pytorch build at the moment.</span></span>
-<span id="cb4-3"><a href=""></a><span class="im">import</span> torch</span>
-<span id="cb4-4"><a href=""></a><span class="im">import</span> pytorch_lightning <span class="im">as</span> pl</span>
-<span id="cb4-5"><a href=""></a></span>
-<span id="cb4-6"><a href=""></a><span class="im">from</span> lightning_fabric.plugins.environments <span class="im">import</span> MPIEnvironment</span>
-<span id="cb4-7"><a href=""></a>environment <span class="op">=</span> MPIEnvironment()</span>
-<span id="cb4-8"><a href=""></a></span>
-<span id="cb4-9"><a href=""></a><span class="im">from</span> pytorch_lightning.strategies <span class="im">import</span> DDPStrategy</span>
-<span id="cb4-10"><a href=""></a>strategy <span class="op">=</span> DDPStrategy(</span>
-<span id="cb4-11"><a href=""></a>    cluster_environment <span class="op">=</span> environment,</span>
-<span id="cb4-12"><a href=""></a>)</span>
-<span id="cb4-13"><a href=""></a></span>
-<span id="cb4-14"><a href=""></a>trainer <span class="op">=</span> pl.Trainer(</span>
-<span id="cb4-15"><a href=""></a>    strategy <span class="op">=</span> strategy,</span>
-<span id="cb4-16"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Pytorch Lightning is a very user friendly package for your pytorch models. It <em>does</em> scale out on Sunspot and Aurora (and it’s pretty easy) but you have to use the right plugins. You also must use ALCF’s branch of <a href="https://github.com/argonne-lcf/lightning">Pytorch Lightning</a>. Be sure to select the XPU Accelerator Option:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href=""></a><span class="co"># Select the accelerator:</span></span>
+<span id="cb12-2"><a href=""></a><span class="cf">if</span> args.run.compute_mode <span class="op">==</span> ComputeMode.XPU:</span>
+<span id="cb12-3"><a href=""></a>    <span class="im">from</span> lightning.fabric.accelerators <span class="im">import</span> XPUAccelerator</span>
+<span id="cb12-4"><a href=""></a>    accelerator <span class="op">=</span> XPUAccelerator()</span>
+<span id="cb12-5"><a href=""></a><span class="cf">elif</span> args.run.compute_mode <span class="op">==</span> ComputeMode.CUDA:</span>
+<span id="cb12-6"><a href=""></a>    <span class="im">from</span> lightning.fabric.accelerators <span class="im">import</span> CUDAAccelerator</span>
+<span id="cb12-7"><a href=""></a>    accelerator <span class="op">=</span> CUDAAccelerator()</span>
+<span id="cb12-8"><a href=""></a><span class="cf">else</span>:</span>
+<span id="cb12-9"><a href=""></a>    <span class="im">from</span> lightning.fabric.accelerators <span class="im">import</span> CPUAccelerator</span>
+<span id="cb12-10"><a href=""></a>    accelerator <span class="op">=</span> CPUAccelerator()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="jax-on-polaris" class="slide level2">
-<h2>JAX On Polaris</h2>
+<section id="scaling-lightning-code" class="slide level2">
+<h2>Scaling Lightning Code</h2>
+<div class="sourceCode" id="cb13" data-code-line-numbers="1-2|4-5|7-10|12-14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href=""></a><span class="im">import</span> torch</span>
+<span id="cb13-2"><a href=""></a><span class="im">import</span> pytorch_lightning <span class="im">as</span> pl</span>
+<span id="cb13-3"><a href=""></a></span>
+<span id="cb13-4"><a href=""></a><span class="im">from</span> lightning_fabric.plugins.environments <span class="im">import</span> MPIEnvironment</span>
+<span id="cb13-5"><a href=""></a>environment <span class="op">=</span> MPIEnvironment()</span>
+<span id="cb13-6"><a href=""></a></span>
+<span id="cb13-7"><a href=""></a><span class="im">from</span> pytorch_lightning.strategies <span class="im">import</span> DDPStrategy</span>
+<span id="cb13-8"><a href=""></a>strategy <span class="op">=</span> DDPStrategy(</span>
+<span id="cb13-9"><a href=""></a>    cluster_environment <span class="op">=</span> environment,</span>
+<span id="cb13-10"><a href=""></a>)</span>
+<span id="cb13-11"><a href=""></a></span>
+<span id="cb13-12"><a href=""></a>trainer <span class="op">=</span> pl.Trainer(</span>
+<span id="cb13-13"><a href=""></a>    strategy <span class="op">=</span> strategy,</span>
+<span id="cb13-14"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="jax" class="slide level2">
+<h2>JAX</h2>
 <ul>
 <li class="fragment">JAX is the successor of <code>autograd</code> and built with <code>XLA</code> as a backend for <code>numpy</code>.
 <ul>
@@ -593,14 +714,22 @@ Corey Adams
 </ul></li>
 </ul>
 </section>
-<section id="scaling-jax-on-polaris" class="slide level2">
-<h2>Scaling JAX on Polaris</h2>
+<section id="jax-on-sunspotaurora" class="slide level2">
+<h2>JAX on Sunspot/Aurora</h2>
+<p>JAX has early support on Sunspot and Aurora through the Intel Extension for OpenXLA. All JAX modules have been built and installed by LCF staff (me).</p>
+<p>JAX is still very early in development for XPU. Most operations are functional, but performance can be subpar. <code>mpi4jax</code> is supported but not concurrently with <code>jax.device_put</code> (there is a bug in upstream JAX, already fixed, but hasn’t made it to XPU yet.)</p>
+</section>
+<section id="scaling-jax-on-sunspot" class="slide level2 smaller">
+<h2>Scaling JAX on Sunspot</h2>
 <p>JAX can scale out with several methods:</p>
 <ul>
 <li class="fragment"><a href="https://jax.readthedocs.io/en/latest/_autosummary/jax.pmap.html"><code>pmap</code></a> and <code>pjit</code> (which is just regular <code>jit</code> with extra args) are parallelization routines to parallelize your function. They do things “for you” but you still have to know what changes they will make.</li>
 <li class="fragment"><a href="https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html"><code>mpi4jax</code></a> is the simplest scale out method: implement <code>jit</code>able mpi collectives within JAX, supported on Polaris.</li>
 <li class="fragment">JAX’s newer <a href="https://jax.readthedocs.io/en/latest/jep/14273-shard-map.html"><code>shard map</code></a> technique is more complicated but offers more fine granularity for parallelization. It’s also a little harder to use.</li>
 </ul>
+<div class="fragment">
+<p><strong>All of these are experimental on XPU and may not work yet!</strong></p>
+</div>
 </section>
 <section id="best-practices-for-running-on-polaris" class="slide level2">
 <h2>Best Practices for running on Polaris</h2>
@@ -615,86 +744,94 @@ Corey Adams
 <h2>Initial Setup</h2>
 <p>You can follow along with this demonstration if you like, or return later and run these examples.</p>
 <p>Download the code for CosmicTagger:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href=""></a><span class="fu">git</span> clone https://github.com/coreyjadams/CosmicTagger.git</span>
-<span id="cb5-2"><a href=""></a><span class="bu">cd</span> CosmicTagger</span>
-<span id="cb5-3"><a href=""></a><span class="fu">git</span> checkout v2.1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href=""></a><span class="fu">git</span> clone https://github.com/coreyjadams/CosmicTagger.git</span>
+<span id="cb14-2"><a href=""></a><span class="bu">cd</span> CosmicTagger</span>
+<span id="cb14-3"><a href=""></a><span class="fu">git</span> checkout v2.1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="run-from-a-compute-node" class="slide level2">
 <h2>Run from a Compute Node</h2>
 <p>Determine the node count and number of ranks:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href=""></a><span class="co">#!/bin/bash -l</span></span>
-<span id="cb6-2"><a href=""></a></span>
-<span id="cb6-3"><a href=""></a><span class="co"># What's the cosmic tagger work directory?</span></span>
-<span id="cb6-4"><a href=""></a><span class="va">WORK_DIR</span><span class="op">=</span>/home/cadams/Polaris/CosmicTagger</span>
-<span id="cb6-5"><a href=""></a><span class="bu">cd</span> <span class="va">${WORK_DIR}</span></span>
-<span id="cb6-6"><a href=""></a></span>
-<span id="cb6-7"><a href=""></a><span class="co"># MPI and OpenMP settings</span></span>
-<span id="cb6-8"><a href=""></a><span class="va">NNODES</span><span class="op">=</span><span class="kw">`</span><span class="fu">wc</span> <span class="at">-l</span> <span class="op">&lt;</span> <span class="va">$PBS_NODEFILE</span><span class="kw">`</span></span>
-<span id="cb6-9"><a href=""></a><span class="va">NRANKS_PER_NODE</span><span class="op">=</span>1</span>
-<span id="cb6-10"><a href=""></a></span>
-<span id="cb6-11"><a href=""></a><span class="bu">let</span> <span class="va">NRANKS</span><span class="op">=</span><span class="va">${NNODES}</span><span class="pp">*</span><span class="va">${NRANKS_PER_NODE}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href=""></a><span class="co">#!/bin/bash -l</span></span>
+<span id="cb15-2"><a href=""></a></span>
+<span id="cb15-3"><a href=""></a><span class="co"># What's the cosmic tagger work directory?</span></span>
+<span id="cb15-4"><a href=""></a><span class="va">WORK_DIR</span><span class="op">=</span>/home/cadams/Polaris/CosmicTagger</span>
+<span id="cb15-5"><a href=""></a><span class="bu">cd</span> <span class="va">${WORK_DIR}</span></span>
+<span id="cb15-6"><a href=""></a></span>
+<span id="cb15-7"><a href=""></a><span class="co"># MPI and OpenMP settings</span></span>
+<span id="cb15-8"><a href=""></a><span class="va">NNODES</span><span class="op">=</span><span class="kw">`</span><span class="fu">wc</span> <span class="at">-l</span> <span class="op">&lt;</span> <span class="va">$PBS_NODEFILE</span><span class="kw">`</span></span>
+<span id="cb15-9"><a href=""></a><span class="va">NRANKS_PER_NODE</span><span class="op">=</span>1</span>
+<span id="cb15-10"><a href=""></a></span>
+<span id="cb15-11"><a href=""></a><span class="bu">let</span> <span class="va">NRANKS</span><span class="op">=</span><span class="va">${NNODES}</span><span class="pp">*</span><span class="va">${NRANKS_PER_NODE}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="software-setup" class="slide level2">
 <h2>Software setup</h2>
 <p>Set the batch size per GPU and activate conda:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href=""></a><span class="va">LOCAL_BATCH_SIZE</span><span class="op">=</span>1</span>
-<span id="cb7-2"><a href=""></a></span>
-<span id="cb7-3"><a href=""></a><span class="co"># Set up software deps:</span></span>
-<span id="cb7-4"><a href=""></a><span class="ex">module</span> use /soft/modulefiles</span>
-<span id="cb7-5"><a href=""></a><span class="ex">module</span> load conda</span>
-<span id="cb7-6"><a href=""></a><span class="ex">conda</span> activate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href=""></a><span class="va">LOCAL_BATCH_SIZE</span><span class="op">=</span>1</span>
+<span id="cb16-2"><a href=""></a></span>
+<span id="cb16-3"><a href=""></a><span class="co"># Set up software deps:</span></span>
+<span id="cb16-4"><a href=""></a><span class="ex">module</span> use /soft/preview-modulefiles/24.086.0</span>
+<span id="cb16-5"><a href=""></a><span class="ex">module</span> load frameworks/2024.04.15.002        </span>
+<span id="cb16-6"><a href=""></a><span class="bu">source</span> /home/cadams/frameworks-2024.1-extension/bin/activate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="python-call" class="slide level2">
 <h2>Python call</h2>
 <p>Run configuration and call:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href=""></a></span>
-<span id="cb8-2"><a href=""></a><span class="ex">python</span> <span class="va">${WORK_DIR}</span>/bin/exec.py <span class="dt">\</span></span>
-<span id="cb8-3"><a href=""></a>--config-name a21 <span class="dt">\</span></span>
-<span id="cb8-4"><a href=""></a>framework=torch <span class="dt">\</span></span>
-<span id="cb8-5"><a href=""></a>data.data_format=channels_last <span class="dt">\</span></span>
-<span id="cb8-6"><a href=""></a>run.compute_mode=GPU <span class="dt">\</span></span>
-<span id="cb8-7"><a href=""></a>data=synthetic <span class="dt">\</span></span>
-<span id="cb8-8"><a href=""></a>run.id=polaris_<span class="va">${LOCAL_BATCH_SIZE}</span>-ranks<span class="va">${NRANKS}</span>-nodes<span class="va">${NNODES}</span> <span class="dt">\</span></span>
-<span id="cb8-9"><a href=""></a>run.distributed=True <span class="dt">\</span></span>
-<span id="cb8-10"><a href=""></a>run.minibatch_size=<span class="va">${LOCAL_BATCH_SIZE}</span> <span class="dt">\</span></span>
-<span id="cb8-11"><a href=""></a>run.iterations=100</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href=""></a></span>
+<span id="cb17-2"><a href=""></a><span class="ex">python</span> <span class="va">${WORK_DIR}</span>/bin/exec.py <span class="dt">\</span></span>
+<span id="cb17-3"><a href=""></a>--config-name a21 <span class="dt">\</span></span>
+<span id="cb17-4"><a href=""></a>framework=torch <span class="dt">\</span></span>
+<span id="cb17-5"><a href=""></a>data.data_format=channels_last <span class="dt">\</span></span>
+<span id="cb17-6"><a href=""></a>run.compute_mode=XPU <span class="dt">\</span></span>
+<span id="cb17-7"><a href=""></a>data=synthetic <span class="dt">\</span></span>
+<span id="cb17-8"><a href=""></a>run.id=polaris_<span class="va">${LOCAL_BATCH_SIZE}</span>-ranks<span class="va">${NRANKS}</span>-nodes<span class="va">${NNODES}</span> <span class="dt">\</span></span>
+<span id="cb17-9"><a href=""></a>run.distributed=True <span class="dt">\</span></span>
+<span id="cb17-10"><a href=""></a>run.minibatch_size=<span class="va">${LOCAL_BATCH_SIZE}</span> <span class="dt">\</span></span>
+<span id="cb17-11"><a href=""></a>run.iterations=100</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="the-full-script" class="slide level2">
 <h2>The full Script</h2>
 <p>Here’s a script that runs CosmicTagger in Pytorch (from an interactive node)</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href=""></a><span class="co">#!/bin/bash -l</span></span>
-<span id="cb9-2"><a href=""></a></span>
-<span id="cb9-3"><a href=""></a><span class="co"># What's the cosmic tagger work directory?</span></span>
-<span id="cb9-4"><a href=""></a><span class="va">WORK_DIR</span><span class="op">=</span>/home/cadams/Polaris/CosmicTagger</span>
-<span id="cb9-5"><a href=""></a><span class="bu">cd</span> <span class="va">${WORK_DIR}</span></span>
-<span id="cb9-6"><a href=""></a></span>
-<span id="cb9-7"><a href=""></a><span class="co"># MPI and OpenMP settings</span></span>
-<span id="cb9-8"><a href=""></a><span class="va">NNODES</span><span class="op">=</span><span class="kw">`</span><span class="fu">wc</span> <span class="at">-l</span> <span class="op">&lt;</span> <span class="va">$PBS_NODEFILE</span><span class="kw">`</span></span>
-<span id="cb9-9"><a href=""></a><span class="va">NRANKS_PER_NODE</span><span class="op">=</span>1</span>
-<span id="cb9-10"><a href=""></a></span>
-<span id="cb9-11"><a href=""></a><span class="bu">let</span> <span class="va">NRANKS</span><span class="op">=</span><span class="va">${NNODES}</span><span class="pp">*</span><span class="va">${NRANKS_PER_NODE}</span></span>
-<span id="cb9-12"><a href=""></a></span>
-<span id="cb9-13"><a href=""></a><span class="va">LOCAL_BATCH_SIZE</span><span class="op">=</span>1</span>
-<span id="cb9-14"><a href=""></a></span>
-<span id="cb9-15"><a href=""></a><span class="co"># Set up software deps:</span></span>
-<span id="cb9-16"><a href=""></a><span class="ex">module</span> use /soft/modulefiles</span>
-<span id="cb9-17"><a href=""></a><span class="ex">module</span> load conda</span>
-<span id="cb9-18"><a href=""></a><span class="ex">conda</span> activate</span>
-<span id="cb9-19"><a href=""></a></span>
-<span id="cb9-20"><a href=""></a><span class="ex">python</span> <span class="va">${WORK_DIR}</span>/bin/exec.py <span class="dt">\</span></span>
-<span id="cb9-21"><a href=""></a>--config-name a21 <span class="dt">\</span></span>
-<span id="cb9-22"><a href=""></a>framework=torch <span class="dt">\</span></span>
-<span id="cb9-23"><a href=""></a>data.data_format=channels_last <span class="dt">\</span></span>
-<span id="cb9-24"><a href=""></a>run.compute_mode=GPU <span class="dt">\</span></span>
-<span id="cb9-25"><a href=""></a>data=synthetic <span class="dt">\</span></span>
-<span id="cb9-26"><a href=""></a>run.id=polaris_<span class="va">${LOCAL_BATCH_SIZE}</span>-ranks<span class="va">${NRANKS}</span>-nodes<span class="va">${NNODES}</span> <span class="dt">\</span></span>
-<span id="cb9-27"><a href=""></a>run.distributed=True <span class="dt">\</span></span>
-<span id="cb9-28"><a href=""></a>run.minibatch_size=<span class="va">${LOCAL_BATCH_SIZE}</span> <span class="dt">\</span></span>
-<span id="cb9-29"><a href=""></a>run.iterations=100</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href=""></a><span class="co">#!/bin/bash -l</span></span>
+<span id="cb18-2"><a href=""></a></span>
+<span id="cb18-3"><a href=""></a><span class="co"># What's the cosmic tagger work directory?</span></span>
+<span id="cb18-4"><a href=""></a><span class="va">WORK_DIR</span><span class="op">=</span>/home/cadams/Polaris/CosmicTagger</span>
+<span id="cb18-5"><a href=""></a><span class="bu">cd</span> <span class="va">${WORK_DIR}</span></span>
+<span id="cb18-6"><a href=""></a></span>
+<span id="cb18-7"><a href=""></a><span class="co"># MPI and OpenMP settings</span></span>
+<span id="cb18-8"><a href=""></a><span class="va">NNODES</span><span class="op">=</span><span class="kw">`</span><span class="fu">wc</span> <span class="at">-l</span> <span class="op">&lt;</span> <span class="va">$PBS_NODEFILE</span><span class="kw">`</span></span>
+<span id="cb18-9"><a href=""></a><span class="va">NRANKS_PER_NODE</span><span class="op">=</span>1</span>
+<span id="cb18-10"><a href=""></a></span>
+<span id="cb18-11"><a href=""></a><span class="bu">let</span> <span class="va">NRANKS</span><span class="op">=</span><span class="va">${NNODES}</span><span class="pp">*</span><span class="va">${NRANKS_PER_NODE}</span></span>
+<span id="cb18-12"><a href=""></a></span>
+<span id="cb18-13"><a href=""></a><span class="va">LOCAL_BATCH_SIZE</span><span class="op">=</span>1</span>
+<span id="cb18-14"><a href=""></a></span>
+<span id="cb18-15"><a href=""></a><span class="co"># Set up software deps:</span></span>
+<span id="cb18-16"><a href=""></a></span>
+<span id="cb18-17"><a href=""></a><span class="co"># Set up software deps:</span></span>
+<span id="cb18-18"><a href=""></a><span class="ex">module</span> use /soft/preview-modulefiles/24.086.0</span>
+<span id="cb18-19"><a href=""></a><span class="ex">module</span> load frameworks/2024.04.15.002        </span>
+<span id="cb18-20"><a href=""></a><span class="bu">source</span> /home/cadams/frameworks-2024.1-extension/bin/activate</span>
+<span id="cb18-21"><a href=""></a></span>
+<span id="cb18-22"><a href=""></a></span>
+<span id="cb18-23"><a href=""></a><span class="ex">python</span> <span class="va">${WORK_DIR}</span>/bin/exec.py <span class="dt">\</span></span>
+<span id="cb18-24"><a href=""></a>--config-name a21 <span class="dt">\</span></span>
+<span id="cb18-25"><a href=""></a>framework=torch <span class="dt">\</span></span>
+<span id="cb18-26"><a href=""></a>data.data_format=channels_last <span class="dt">\</span></span>
+<span id="cb18-27"><a href=""></a>run.compute_mode=XPU <span class="dt">\</span></span>
+<span id="cb18-28"><a href=""></a>data=synthetic <span class="dt">\</span></span>
+<span id="cb18-29"><a href=""></a>run.id=polaris_<span class="va">${LOCAL_BATCH_SIZE}</span>-ranks<span class="va">${NRANKS}</span>-nodes<span class="va">${NNODES}</span> <span class="dt">\</span></span>
+<span id="cb18-30"><a href=""></a>run.distributed=True <span class="dt">\</span></span>
+<span id="cb18-31"><a href=""></a>run.minibatch_size=<span class="va">${LOCAL_BATCH_SIZE}</span> <span class="dt">\</span></span>
+<span id="cb18-32"><a href=""></a>run.iterations=100</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="performance---pytorch-single-gpu" class="slide level2">
 <h2>Performance - Pytorch, single GPU</h2>
 <p>Performance in Img/s (synthetic data)</p>
+<!-- | Minibatch Size | 1 | 2 | 4 | 8 |
+|--------:|:----:|:----:|:----:|:----:|
+| fp32    | 12.5 | 13.4 | 14.1 | 14.5 |
+| tf32    | 13.8 | 14.4 | 14.4 | 15.2 |
+| fp16    | 10.5 | 11.4 | 11.5 | 11.8 | -->
 <table>
 <thead>
 <tr class="header">
@@ -703,34 +840,105 @@ Corey Adams
 <th style="text-align: center;">2</th>
 <th style="text-align: center;">4</th>
 <th style="text-align: center;">8</th>
+<th style="text-align: center;">16</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">fp32</td>
-<td style="text-align: center;">12.5</td>
-<td style="text-align: center;">13.4</td>
-<td style="text-align: center;">14.1</td>
-<td style="text-align: center;">14.5</td>
+<td style="text-align: right;">tf32</td>
+<td style="text-align: center;">15.1</td>
+<td style="text-align: center;">22.8</td>
+<td style="text-align: center;">30.2</td>
+<td style="text-align: center;">32.0</td>
+<td style="text-align: center;">31.0</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">tf32</td>
-<td style="text-align: center;">13.8</td>
-<td style="text-align: center;">14.4</td>
-<td style="text-align: center;">14.4</td>
-<td style="text-align: center;">15.2</td>
+<td style="text-align: right;">bf16</td>
+<td style="text-align: center;">14.7</td>
+<td style="text-align: center;">24.7</td>
+<td style="text-align: center;">38.6</td>
+<td style="text-align: center;">44.3</td>
+<td style="text-align: center;">32.8</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">fp16</td>
-<td style="text-align: center;">10.5</td>
-<td style="text-align: center;">11.4</td>
-<td style="text-align: center;">11.5</td>
-<td style="text-align: center;">11.8</td>
+<td style="text-align: center;">14.9</td>
+<td style="text-align: center;">23.0</td>
+<td style="text-align: center;">30.1</td>
+<td style="text-align: center;">31.9</td>
+<td style="text-align: center;">31.0</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="performance-tuning" class="slide level2">
+<h2>Performance Tuning</h2>
+<p>For some applications, better performance is seen with <code>unset IPEX_XPU_ONEDNN_LAYOUT_OPT</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Minibatch Size</th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">8</th>
+<th style="text-align: center;">16</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">tf32</td>
+<td style="text-align: center;">16.3</td>
+<td style="text-align: center;">25.2</td>
+<td style="text-align: center;">31.5</td>
+<td style="text-align: center;">33.2</td>
+<td style="text-align: center;">31.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">bf16</td>
+<td style="text-align: center;">15.6</td>
+<td style="text-align: center;">26.9</td>
+<td style="text-align: center;">40.5</td>
+<td style="text-align: center;">45.9</td>
+<td style="text-align: center;">33.4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">fp16</td>
+<td style="text-align: center;">16.5</td>
+<td style="text-align: center;">24.9</td>
+<td style="text-align: center;">31.7</td>
+<td style="text-align: center;">33.2</td>
+<td style="text-align: center;">31.8</td>
+</tr>
+</tbody>
+</table>
+<p>This is yielding 5 to 10% improvement for CosmicTagger. But, you may not see benefit from this change, not all apps do.</p>
+</section>
+<section id="comparison-with-a100" class="slide level2">
+<h2>Comparison with A100</h2>
+<p>For certain configurations, PVC without <code>torch.compile</code> outperforms A100 with <code>torch.compile</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Minibatch Size</th>
+<th style="text-align: center;">PVC-1</th>
+<th style="text-align: center;">A100-1</th>
+<th style="text-align: center;">PVC-8</th>
+<th style="text-align: center;">A100-8</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">compiled tf32</td>
+<td style="text-align: center;">16.3</td>
+<td style="text-align: center;">22.9</td>
+<td style="text-align: center;">33.2</td>
+<td style="text-align: center;">33.1</td>
 </tr>
 </tbody>
 </table>
 <p>You can disable tf32 with</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href=""></a><span class="bu">export</span> <span class="va">NVIDIA_TF32_OVERRIDE</span><span class="op">=</span>0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href=""></a><span class="bu">export</span> <span class="va">NVIDIA_TF32_OVERRIDE</span><span class="op">=</span>0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>… but don’t actually do this!</p>
 </section>
 <section id="improving-performance-torch.compile" class="slide level2 smaller">
@@ -739,8 +947,8 @@ Corey Adams
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="r-stack">
-<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="co"># This is all you need to do!</span></span>
-<span id="cb11-2"><a href=""></a>net <span class="op">=</span> torch.<span class="bu">compile</span>(net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href=""></a><span class="co"># This is all you need to do!</span></span>
+<span id="cb20-2"><a href=""></a>net <span class="op">=</span> torch.<span class="bu">compile</span>(net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div><div class="column" style="width:50%;">
 <table>
@@ -790,22 +998,22 @@ Corey Adams
 <section id="scaling-up-the-model" class="slide level2">
 <h2>Scaling up the model</h2>
 <p>If your code is configured for scale up, it can be easy:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href=""></a>mpiexec <span class="op">-</span>n ${NRANKS} <span class="op">-</span>ppn ${NRANKS_PER_NODE} <span class="op">--</span>cpu<span class="op">-</span>bind<span class="op">=</span>numa <span class="op">\</span></span>
-<span id="cb12-2"><a href=""></a>python ${WORK_DIR}<span class="op">/</span><span class="bu">bin</span><span class="op">/</span><span class="bu">exec</span>.py <span class="op">\</span></span>
-<span id="cb12-3"><a href=""></a><span class="op">--</span>config<span class="op">-</span>name a21 <span class="op">\</span></span>
-<span id="cb12-4"><a href=""></a>framework<span class="op">=</span>torch <span class="op">\</span></span>
-<span id="cb12-5"><a href=""></a>data.data_format<span class="op">=</span>channels_last <span class="op">\</span></span>
-<span id="cb12-6"><a href=""></a>run.compute_mode<span class="op">=</span>GPU <span class="op">\</span></span>
-<span id="cb12-7"><a href=""></a>data<span class="op">=</span>synthetic <span class="op">\</span></span>
-<span id="cb12-8"><a href=""></a>run.<span class="bu">id</span><span class="op">=</span>polaris_${LOCAL_BATCH_SIZE}<span class="op">-</span>ranks${NRANKS}<span class="op">-</span>nodes${NNODES} <span class="op">\</span></span>
-<span id="cb12-9"><a href=""></a>run.distributed<span class="op">=</span><span class="va">True</span> <span class="op">\</span></span>
-<span id="cb12-10"><a href=""></a>run.minibatch_size<span class="op">=</span>${LOCAL_BATCH_SIZE} <span class="op">\</span></span>
-<span id="cb12-11"><a href=""></a>run.iterations<span class="op">=</span><span class="dv">100</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href=""></a>mpiexec <span class="op">-</span>n ${NRANKS} <span class="op">-</span>ppn ${NRANKS_PER_NODE} <span class="op">--</span>cpu<span class="op">-</span>bind<span class="op">=</span>numa <span class="op">\</span></span>
+<span id="cb21-2"><a href=""></a>python ${WORK_DIR}<span class="op">/</span><span class="bu">bin</span><span class="op">/</span><span class="bu">exec</span>.py <span class="op">\</span></span>
+<span id="cb21-3"><a href=""></a><span class="op">--</span>config<span class="op">-</span>name a21 <span class="op">\</span></span>
+<span id="cb21-4"><a href=""></a>framework<span class="op">=</span>torch <span class="op">\</span></span>
+<span id="cb21-5"><a href=""></a>data.data_format<span class="op">=</span>channels_last <span class="op">\</span></span>
+<span id="cb21-6"><a href=""></a>run.compute_mode<span class="op">=</span>GPU <span class="op">\</span></span>
+<span id="cb21-7"><a href=""></a>data<span class="op">=</span>synthetic <span class="op">\</span></span>
+<span id="cb21-8"><a href=""></a>run.<span class="bu">id</span><span class="op">=</span>polaris_${LOCAL_BATCH_SIZE}<span class="op">-</span>ranks${NRANKS}<span class="op">-</span>nodes${NNODES} <span class="op">\</span></span>
+<span id="cb21-9"><a href=""></a>run.distributed<span class="op">=</span><span class="va">True</span> <span class="op">\</span></span>
+<span id="cb21-10"><a href=""></a>run.minibatch_size<span class="op">=</span>${LOCAL_BATCH_SIZE} <span class="op">\</span></span>
+<span id="cb21-11"><a href=""></a>run.iterations<span class="op">=</span><span class="dv">100</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>CosmicTagger will run with DDP in this configuration.</p>
 </section>
 <section id="scale-up-performance" class="slide level2">
 <h2>Scale up Performance</h2>
-<p>On Polaris, with NCCL communicators on a node, we typically see excellent performance scaling up to 4 ranks on a GPU in data parallel mode:</p>
+<p>On , with NCCL communicators on a node, we typically see excellent performance scaling up to 4 ranks on a GPU in data parallel mode:</p>
 <table>
 <thead>
 <tr class="header">
@@ -915,8 +1123,8 @@ Corey Adams
 <section id="what-will-things-look-like-on-aurora" class="slide level2">
 <h2>What will things look like on Aurora?</h2>
 <p>We have made a concerted effort with Intel to ensure AI models on Aurora will be performant and your code, in the python frameworks, is portable with minimal effort.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href=""></a></span>
-<span id="cb13-2"><a href=""></a><span class="im">import</span> intel_extension_for_pytorch <span class="im">as</span> ipex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href=""></a></span>
+<span id="cb22-2"><a href=""></a><span class="im">import</span> intel_extension_for_pytorch <span class="im">as</span> ipex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="fragment">
 <p><img data-src="graphics/perf-comparison.png" width="800"></p>
 <p>Please attend the <a href="https://www.alcf.anl.gov/events/deep-learning-frameworks-aurora">developer session</a> next week for more information on Aurora Frameworks:</p>
